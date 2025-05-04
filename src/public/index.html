@@ -17,8 +17,9 @@
     </div>
     <hr>
     <h2>Test</h2>
-    <a id="image_anchor" target="_blank"
-        href="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/330px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg">
+    <img id="image_test" src="https://hips.hearstapps.com/autoweek/assets/s3fs-public/140319900.jpg"
+        style="width: 10rem; height: 10rem; object-fit: contain; border: solid;">
+    <a id="image_anchor" target="_blank" href="https://hips.hearstapps.com/autoweek/assets/s3fs-public/140319900.jpg">
         Test Image</a>
     <br>
     <a id="pdf_anchor" href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
@@ -45,6 +46,7 @@
         function updateProxyUrl() {
             const proxyUrl = $('#proxy_url').val();
 
+            $('#image_test').attr('src', proxyUrl + $('#image_test').attr('src'));
             $('#image_anchor').attr('href', proxyUrl + $('#image_anchor').attr('href'));
             $('#pdf_anchor').attr('href', proxyUrl + $('#pdf_anchor').attr('href'));
         }
