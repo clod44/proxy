@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>proxy</h1>
+    <div style="display: flex; gap: 1rem;">
+        <label for="proxy_url">Proxy url</label>
+        <input type="text" id="proxy_url" placeholder="proxy url" style="flex-grow: 1;">
+    </div>
+    <hr>
+    <h2>Test</h2>
+    <a id="image_anchor" target="_blank"
+        href="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/330px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg">
+        Test Image</a>
+    <br>
+    <a id="pdf_anchor" href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
+        Test Pdf</a>
+    <hr>
+    <h2>HLS Streaming Example</h2>
+    <div style="display: flex; gap: 1rem;">
+        <label for="m3u8_url">HLS video url</label>
+        <input type="text" id="hls_url" placeholder="HLS url" style="flex-grow: 1;">
+    </div>
+    <div style="display: flex; gap: 1rem; justify-content: center; align-items: center;">
+        <button id="load_video">Load video</button>
+    </div>
+
+    <video id="video" controls style="width: 100%;"></video>
+
+    <script>
+        const currentDomain = window.location.origin;
+        $('#proxy_url').val(`${currentDomain}/proxy?url=`);
+
+        const exampleHlsVideo = "https://eh.netmagcdn.com:2228/hls-playback/61104e0fbf60f7c0bec92309d55517cdaacaf8be60878a81e5d07e832c765f456d52b7c134bdf4481a54d2e77642d2da3b440593a661daa80ef77490d8f755e0f8842a9accd19b59a6acfb0f3c72ff7bbbb6cd4f29838561f76cdcdd236ac25eb04031375356d447f85e679595f3b4fff578d80a54d4c593480c655556b07ecd8d104fc6a57d1e642cae82ec3760b2ff/master.m3u8";
+        $('#hls_url').val(exampleHlsVideo);
+
+        function updateProxyUrl() {
+            const proxyUrl = $('#proxy_url').val();
+
+            $('#image_anchor').attr('href', proxyUrl + $('#image_anchor').attr('href'));
+            $('#pdf_anchor').attr('href', proxyUrl + $('#pdf_anchor').attr('href'));
+        }
+        $('#proxy_url').on('change', updateProxyUrl);
+        updateProxyUrl();
+
+
+
+
+        function loadVideo() {
+            console.log('loadVideo');
+            const video = $('#video')[0];
+            const proxiedUrl = $('#proxy_url').val() + encodeURIComponent($('#hls_url').val());
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(proxiedUrl);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    // video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Fallback for browsers that natively support HLS (like Safari)
+                video.src = proxiedUrl;
+                video.addEventListener('loadedmetadata', function () {
+                    // video.play();
+                });
+            }
+        }
+
+        $('#load_video').on('click', loadVideo);
+    </script>
+</body>
+
+</html>
