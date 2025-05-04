@@ -1,6 +1,10 @@
-import proxyRouter from '@/routes/proxy'
-import express from 'express'
-import path from 'path'
+import proxyRouter from '@/routes/proxy';
+import dotenv from 'dotenv';
+import express from 'express';
+import path from 'path';
+dotenv.config();
+
+
 
 const app = express()
 const port = process.env.PORT || 3000
