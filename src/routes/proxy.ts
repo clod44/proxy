@@ -5,6 +5,39 @@ import url from 'url';
 
 const router = Router();
 
+const handleM3U8 = (target: string, req: Request, res: Response, client: typeof http | typeof https) => {
+    client.get(target, (proxyRes) => {
+        let data = '';
+        proxyRes.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        // Rewrite relative .ts and .m3u8 paths in the playlist to go through our proxy
+        // This avoids broken requests like "localhost/segment.ts" (404),
+        // and ensures they are fetched via "localhost/proxy?url=originaldomain.com/segment.ts"
+        proxyRes.on('end', () => {
+            const base = target.substring(0, target.lastIndexOf('/') + 1);
+            data = data.replace(/^(?!#)(.+\.(ts|m3u8))$/gm, (match, path) => {
+                const full = url.resolve(base, path.trim());
+                return `${req.protocol}://${req.get('host')}/proxy?url=${encodeURIComponent(full)}`;
+            });
+            res.send(data);
+        });
+
+    }).on('error', () => {
+        res.status(500).send('Proxy error');
+    });
+}
+
+const handleDefault = (target: string, res: Response, client: typeof http | typeof https) => {
+    client.get(target, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+        proxyRes.pipe(res);
+    }).on('error', () => {
+        res.status(500).send('Proxy error');
+    });
+}
+
 const handler: RequestHandler = (req: Request, res: Response) => {
     const target = req.query.url as string;
     if (!target) {
@@ -13,48 +46,13 @@ const handler: RequestHandler = (req: Request, res: Response) => {
     }
 
     const client = target.startsWith('https') ? https : http;
+    const ext = target.split('.').pop()?.toLowerCase();
 
-    if (target.endsWith('.m3u8')) {
-        client.get(target, (proxyRes) => {
-            proxyRes.headers['content-type'] = 'application/vnd.apple.mpegurl';
-            res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-
-            let data = '';
-            proxyRes.on('data', (chunk) => {
-                data += chunk;
-            });
-
-            //update relative ts paths to use our proxy
-            //otherwise it will try to look for ts files in the same domain like "localhost/file1.ts 404 !!"
-            proxyRes.on('end', () => {
-                const base = target.substring(0, target.lastIndexOf('/') + 1);
-                data = data.replace(/^(?!#)(.+\.(ts|m3u8))$/gm, (match, path) => {
-                    const full = url.resolve(base, path.trim());
-                    return `${req.protocol}://${req.get('host')}/proxy?url=${encodeURIComponent(full)}`;
-                });
-                res.send(data);
-            });
-
-
-        }).on('error', () => {
-            res.status(500).send('Proxy error');
-        });
-
-    } else if (target.endsWith('.ts')) {
-        client.get(target, (proxyRes) => {
-            proxyRes.headers['content-type'] = 'video/MP2T';
-            res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
-            proxyRes.pipe(res);
-        }).on('error', () => {
-            res.status(500).send('Proxy error');
-        });
-    } else {
-        client.get(target, (proxyRes) => {
-            res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
-            proxyRes.pipe(res);
-        }).on('error', () => {
-            res.status(500).send('Proxy error');
-        });
+    switch (ext) {
+        case 'm3u8':
+            return handleM3U8(target, req, res, client);
+        default:
+            return handleDefault(target, res, client);
     }
 };
 
