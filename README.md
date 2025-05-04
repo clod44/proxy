@@ -3,8 +3,12 @@ express proxy server that can stream m3u8
 
 ## usage
  - `pnpm install`
- - `pnpm start`
+ - `pnpm dev` for development
+ - `pnpm build` and `pnpm start` for production
 
+if you prefer to use`npm`, just run the same commands with `npm run <command>`
+
+## testing
 open `http://localhost:PORT` or whatever for testing.
  - `domain.com/proxy?url=example.com/file.pdf`
  - `domain.com/proxy?url=example.com/image.jpg`
@@ -12,7 +16,7 @@ open `http://localhost:PORT` or whatever for testing.
 
 you will need a HSL supporting player to be able to play the m3u8 videos.
 
-## env
+## .env
 see `.env.example` for more
 ```
 PORT=3000
