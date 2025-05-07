@@ -4,21 +4,15 @@
             "NODE_ENV": "production"
         }
     },
-    "installCommand": "corepack enable && corepack prepare pnpm@10.0.0 --activate && pnpm install",
+    "installCommand": "corepack enable && corepack prepare pnpm@10.10.0 --activate && pnpm install",
     "builds": [
         {
             "src": "public/**",
             "use": "@vercel/static"
         },
         {
-            "src": "src/**/*.ts",
+            "src": "api/**/*.ts",
             "use": "@vercel/node"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/",
-            "dest": "/public/index.html"
         }
     ]
 }
