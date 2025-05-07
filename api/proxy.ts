@@ -5,10 +5,6 @@ import url from 'url';
 import allowlistMiddleware from '../middlewares/allowlist';
 import { runMiddlewares } from '../middlewares/runMiddlewares';
 
-// Use dotenv for local development only
-if (process.env.NODE_ENV === 'development') {
-    require('dotenv').config(); // Necessary for local development
-}
 
 const handleM3U8 = (target: string, req: VercelRequest, res: VercelResponse, client: typeof http | typeof https) => {
     client.get(target, (proxyRes) => {

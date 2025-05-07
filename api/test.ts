@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-    res.status(200).json({ message: 'Hello' });
+    res.status(200).json({ message: `Hello ${process.env.PORT}` });
 }
