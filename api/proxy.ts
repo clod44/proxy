@@ -6,6 +6,7 @@ import allowlistMiddleware from '../middlewares/allowlist';
 import { runMiddlewares } from '../middlewares/runMiddlewares';
 
 
+
 const handleM3U8 = (target: string, req: VercelRequest, res: VercelResponse, client: typeof http | typeof https) => {
     client.get(target, (proxyRes) => {
         let data = '';
@@ -40,8 +41,7 @@ const ALLOWLIST = process.env.ALLOWLIST ? process.env.ALLOWLIST.split(',') : [];
 const DEV_MODE = process.env.DEV_MODE === 'true';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-    // Run middleware for dev mode (to simulate rate-limiting and allowlist checks)
-    if (DEV_MODE) {
+    if (!DEV_MODE) {
         const middlewares = [
             allowlistMiddleware(ALLOWLIST),
         ];
@@ -56,7 +56,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const client = target.startsWith('https') ? https : http;
     const ext = target.split('.').pop()?.toLowerCase();
 
-    // Proxy logic based on file extension
     switch (ext) {
         case 'm3u8':
             return handleM3U8(target, req, res, client);
