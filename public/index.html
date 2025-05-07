@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.2/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.css">
+    <script
+        src="https://cdnjs.cloudflare.com/polyfill/v2/polyfill.min.js?features=es6,Array.prototype.includes,CustomEvent,Object.entries,Object.values,URL"></script>
     <title>Document</title>
 </head>
 
@@ -33,6 +37,7 @@
     <div style="display: flex; gap: 1rem; justify-content: center; align-items: center;">
         <button id="load_video">Load video</button>
     </div>
+    <p>subtitle options wont update with your changed video url</p>
 
     <video id="video" controls style="width: 100%;"></video>
 
@@ -42,6 +47,48 @@
 
         const exampleHlsVideo = "https://ea.netmagcdn.com:2228/hls-playback/fab0f470f2d1523ce69135147764c7ed448a5370e578ecf9195da9e269e7d6c19acbe06eedbdd88c67499b4ee507339e59d35511a097b6bc0f912210c98b71170a2386b69738b296924f6631c044c0f38065e145c5b441285716ab56935c24e5bab308466ab8bce1a5f8d36218f0ee028b63116deb8b3b974c4a5c058663bfeee73c9a6188c898d5a91220361b00da59/master.m3u8";
         $('#hls_url').val(exampleHlsVideo);
+        const exampleSubtitlesData = [
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/ara-6.vtt",
+                "lang": "Arabic"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/eng-2.vtt",
+                "lang": "English"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/fre-7.vtt",
+                "lang": "French"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/ger-8.vtt",
+                "lang": "German"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/ita-9.vtt",
+                "lang": "Italian"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/por-3.vtt",
+                "lang": "Portuguese - Portuguese(Brazil)"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/rus-10.vtt",
+                "lang": "Russian"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/spa-5.vtt",
+                "lang": "Spanish"
+            },
+            {
+                "url": "https://s.megastatics.com/subtitle/9fac52da7aaa01bfe4b0ca71a5230e7e/spa-4.vtt",
+                "lang": "Spanish - Spanish(Latin_America)"
+            },
+            {
+                "url": "https://s.megastatics.com/thumbnails/0f663d6128b77e1920416f4b73eb406d/thumbnails.vtt",
+                "lang": "thumbnails"
+            }
+        ]
 
         function updateProxyUrl() {
             const proxyUrl = $('#proxy_url').val();
@@ -57,28 +104,56 @@
 
 
         function loadVideo() {
-            console.log('loadVideo');
             const video = $('#video')[0];
-            const proxiedUrl = $('#proxy_url').val() + encodeURIComponent($('#hls_url').val());
+            const proxyUrl = $('#proxy_url').val();
+            const source = proxyUrl + encodeURIComponent($('#hls_url').val());
 
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(proxiedUrl);
-                hls.attachMedia(video);
+            const player = new Plyr(video, {
+                captions: { active: true, update: true, language: 'english' },
+                quality: {
+                    default: 144,
+                    options: [144, 240, 360, 480, 720, 1080, 1440, 2160],
+                    forced: true,
+                    onChange: (e) => console.log(e),
+                },
+            });
 
-                hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                    // video.play();
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Fallback for browsers that natively support HLS (like Safari)
-                video.src = proxiedUrl;
-                video.addEventListener('loadedmetadata', function () {
-                    // video.play();
+            function loadSubtitles() {
+                //make sure you load the subtitles after the player tries to load the video. otherwise the player waits for all the subtitles to get downloaded
+
+                exampleSubtitlesData.forEach(sub => {
+                    const track = document.createElement('track');
+                    Object.assign(track, {
+                        label: sub.lang,
+                        srclang: sub.lang.toLowerCase(),
+                        default: false,
+                        src: proxyUrl + sub.url
+                    });
+                    video.appendChild(track);
                 });
             }
+
+            if (!Hls.isSupported()) {
+                video.src = source;
+            } else {
+                const hls = new Hls({
+                    startLevel: 0,
+                    capLevelToPlayerSize: true,
+                    autoStartLoad: true,
+                    startPosition: -1,
+                    levelSelectors: true,
+                });
+                hls.loadSource(source);
+                hls.attachMedia(video);
+            }
+
+            player.on("ready", () => {
+                loadSubtitles();
+            });
         }
 
         $('#load_video').on('click', loadVideo);
+        loadVideo();
     </script>
 </body>
 
