@@ -1,9 +1,9 @@
-import allowlistMiddleware from '@/middlewares/allowlist';
-import { runMiddlewares } from '@/middlewares/runMiddlewares';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import http from 'http';
 import https from 'https';
 import url from 'url';
+import allowlistMiddleware from '../middlewares/allowlist';
+import { runMiddlewares } from '../middlewares/runMiddlewares';
 
 // Use dotenv for local development only
 if (process.env.NODE_ENV === 'development') {

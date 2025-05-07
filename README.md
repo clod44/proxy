@@ -1,12 +1,10 @@
 # proxy
-express proxy server that can stream m3u8
+vercel proxy server that can stream m3u8
 
 ## usage
- - `pnpm install`
- - `pnpm dev` for development
- - `pnpm build` and `pnpm start` for production
+ - install `vercel cli`
+ - `vercel dev` for local development
 
-if you prefer to use`npm`, just run the same commands with `npm run <command>`
 
 ## testing
 open `http://localhost:PORT` or whatever for testing.
